@@ -133,13 +133,13 @@ def draw_text_auto(
                 if buf:
                     segs.append((buf, bracket_color if in_bracket else color))
                     buf = ""
-                segs.append(("[", bracket_color))
+                segs.append((ch, bracket_color))
                 in_bracket = True
             elif ch == "]" or ch == "】":
                 if buf:
                     segs.append((buf, bracket_color))
                     buf = ""
-                segs.append(("]", bracket_color))
+                segs.append((ch, bracket_color))
                 in_bracket = False
             else:
                 buf += ch
