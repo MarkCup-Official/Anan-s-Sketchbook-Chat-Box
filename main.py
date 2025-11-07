@@ -60,6 +60,7 @@ def Start():
 
 
     for marker, bg_image in [
+        ("安安正常", "base.png"),
         ("安安开心", "开心.png"),
         ("安安生气", "生气.png"),
         ("安安无语", "无语.png"),
