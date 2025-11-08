@@ -1,3 +1,4 @@
+import os
 # 本文件中包含了各种参数, 可以进行调整
 # 其中以"#"开头的注释为说明该参数的使用方法
 
@@ -51,9 +52,12 @@ BLOCK_HOTKEY= False
 # 此值为数字, 单位为秒
 DELAY= 0.1
 
+# 获取脚本所在目录
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+
 # 使用字体的文件名, 需要自己导入
 # 此值为字符串, 代表相对main的相对路径
-FONT_FILE= "font.ttf"
+FONT_FILE= os.path.join(SCRIPT_DIR, "font.ttf")
 
 # 将差分表情导入，默认底图base.png
 # 使用底图的文件名, 需要自己导入
@@ -66,7 +70,7 @@ BASEIMAGE_MAPPING = {
     "#脸红#": "BaseImages\\脸红.png",
     "#病娇#": "BaseImages\\病娇.png"
 }
-BASEIMAGE_FILE= "BaseImages\\base.png"
+BASEIMAGE_FILE= os.path.join(SCRIPT_DIR, "base.png")
 
 # 文本框左上角坐标 (x, y), 同时适用于图片框
 # 此值为一个二元组, 例如 (100, 150), 单位像素, 图片的左上角记为 (0, 0)
@@ -78,7 +82,7 @@ IMAGE_BOX_BOTTOMRIGHT= (119+279, 450+175)
 
 # 置顶图层的文件名, 需要自己导入
 # 此值为字符串, 代表相对main的相对路径
-BASE_OVERLAY_FILE= "BaseImages\\base_overlay.png"
+BASE_OVERLAY_FILE= os.path.join(SCRIPT_DIR, "base_overlay.png")
 
 # 是否启用底图的置顶图层, 用于表现遮挡
 # 此值为布尔值, True 或 False
