@@ -7,7 +7,9 @@
 ## 修改声明
 
 本项目相比原项目，增加了更多差分（目前就新增了一种），支持使用时随机调用差分包，并支持调用响应的表情差分
-![第一只安安](https://github.com/RikinYoung/Anan-s-Sketchbook-Chat-Box-MoreAnan/blob/main/BaseImages1/base.png)     ![第二只安安](https://github.com/RikinYoung/Anan-s-Sketchbook-Chat-Box-MoreAnan/blob/main/BaseImages2/base.png)
+
+<img src="https://github.com/RikinYoung/Anan-s-Sketchbook-Chat-Box-MoreAnan/blob/main/BaseImages1/base.png" width="300px">
+<img src="https://github.com/RikinYoung/Anan-s-Sketchbook-Chat-Box-MoreAnan/blob/main/BaseImages2/base.png" width="300px">
 
 ## 部署
 
