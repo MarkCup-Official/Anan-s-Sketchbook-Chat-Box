@@ -18,7 +18,7 @@
 #    - 修饰键：'ctrl'、'alt'、'shift'、'windows'
 #    - 控制键：'enter'、'space'、'tab'、'backspace'、'delete'、'esc'
 #    - 方向键：'up'、'down'、'left'、'right'
-HOTKEY= "ctrl+/"
+HOTKEY= "enter"
 
 # 全选快捷键, 此按键并不会监听, 而是会作为模拟输入
 # 此值为字符串, 代表热键的键名, 格式同 HOTKEY
@@ -75,4 +75,4 @@ AUTO_PASTE_IMAGE= True
 
 # 生成图片后是否自动发送(模拟回车键输入), 只有开启自动黏贴才生效
 # 此值为布尔值, True 或 False
-AUTO_SEND_IMAGE= False
+AUTO_SEND_IMAGE= True
