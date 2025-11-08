@@ -82,7 +82,7 @@ IMAGE_BOX_BOTTOMRIGHT= (119+279, 450+175)
 
 # 置顶图层的文件名, 需要自己导入
 # 此值为字符串, 代表相对main的相对路径
-BASE_OVERLAY_FILE= os.path.join(SCRIPT_DIR, "base_overlay.png")
+BASE_OVERLAY_FILE= os.path.join(SCRIPT_DIR, "BaseImages\\base_overlay.png")
 
 # 是否启用底图的置顶图层, 用于表现遮挡
 # 此值为布尔值, True 或 False
