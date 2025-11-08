@@ -63,14 +63,14 @@ FONT_FILE= os.path.join(SCRIPT_DIR, "font.ttf")
 # 使用底图的文件名, 需要自己导入
 # 此值为字符串, 代表相对main的相对路径
 BASEIMAGE_MAPPING = {
-    "#普通#": os.path.join(SCRIPT_DIR, "base.png"),
-    "#开心#": os.path.join(SCRIPT_DIR, "开心.png"),
-    "#生气#": os.path.join(SCRIPT_DIR, "生气.png"),
-    "#无语#": os.path.join(SCRIPT_DIR, "无语.png"),
-    "#脸红#": os.path.join(SCRIPT_DIR, "脸红.png"),
-    "#病娇#": os.path.join(SCRIPT_DIR, "病娇.png")
+    "#普通#": os.path.join(SCRIPT_DIR, "BaseImages\\base.png"),
+    "#开心#": os.path.join(SCRIPT_DIR, "BaseImages\\开心.png"),
+    "#生气#": os.path.join(SCRIPT_DIR, "BaseImages\\生气.png"),
+    "#无语#": os.path.join(SCRIPT_DIR, "BaseImages\\无语.png"),
+    "#脸红#": os.path.join(SCRIPT_DIR, "BaseImages\\脸红.png"),
+    "#病娇#": os.path.join(SCRIPT_DIR, "BaseImages\\病娇.png")
 }
-BASEIMAGE_FILE= os.path.join(SCRIPT_DIR, "base.png")
+BASEIMAGE_FILE= os.path.join(SCRIPT_DIR, "BaseImages\\base.png")
 
 # 文本框左上角坐标 (x, y), 同时适用于图片框
 # 此值为一个二元组, 例如 (100, 150), 单位像素, 图片的左上角记为 (0, 0)
