@@ -63,12 +63,12 @@ FONT_FILE= os.path.join(SCRIPT_DIR, "font.ttf")
 # 使用底图的文件名, 需要自己导入
 # 此值为字符串, 代表相对main的相对路径
 BASEIMAGE_MAPPING = {
-    "#普通#": "BaseImages\\base.png",
-    "#开心#": "BaseImages\\开心.png",
-    "#生气#": "BaseImages\\生气.png",
-    "#无语#": "BaseImages\\无语.png",
-    "#脸红#": "BaseImages\\脸红.png",
-    "#病娇#": "BaseImages\\病娇.png"
+    "#普通#": os.path.join(SCRIPT_DIR, "base.png"),
+    "#开心#": os.path.join(SCRIPT_DIR, "开心.png"),
+    "#生气#": os.path.join(SCRIPT_DIR, "生气.png"),
+    "#无语#": os.path.join(SCRIPT_DIR, "无语.png"),
+    "#脸红#": os.path.join(SCRIPT_DIR, "脸红.png"),
+    "#病娇#": os.path.join(SCRIPT_DIR, "病娇.png")
 }
 BASEIMAGE_FILE= os.path.join(SCRIPT_DIR, "base.png")
 
