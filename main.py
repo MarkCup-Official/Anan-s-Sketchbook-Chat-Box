@@ -19,6 +19,7 @@ from text_fit_draw import draw_text_auto
 from ui import AnanSketchbookUI
 import threading
 import sys
+import customtkinter as ctk
 
 class AnanSketchbookApp:
     def __init__(self):
@@ -404,33 +405,35 @@ class AnanSketchbookApp:
 
     def run(self):
         """运行应用程序"""
-        # 在单独的线程中启动键盘监听
-        def keyboard_thread():
-            try:
-                keyboard.wait()
-            except KeyboardInterrupt:
-                pass
-
-        thread = threading.Thread(target=keyboard_thread, daemon=True)
-        thread.start()
-        
-        # 启动UI主循环
         try:
+            # 启动键盘监听线程
+            keyboard.start_recording()
+            
+            # 运行UI主循环
             self.ui.root.mainloop()
+            
         except KeyboardInterrupt:
+            self.ui.append_log("收到键盘中断信号，正在退出...")
             self.stop()
-
+        except Exception as e:
+            self.ui.append_log(f"运行时发生错误: {str(e)}")
+            logging.exception(e)
+            
     def stop(self):
         """停止应用程序"""
         self.running = False
         keyboard.unhook_all()
-        # 确保程序退出
-        sys.exit(0)
+        self.ui.append_log("应用程序已停止")
+
 
 def main():
-    """主函数"""
-    app = AnanSketchbookApp()
-    app.run()
+    try:
+        app = AnanSketchbookApp()
+        app.run()
+    except Exception as e:
+        logging.exception(f"启动应用时发生错误: {e}")
+        print(f"启动应用时发生错误: {e}")
+
 
 if __name__ == "__main__":
     main()

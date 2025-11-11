@@ -1,5 +1,5 @@
-import tkinter as tk
-from tkinter import ttk, scrolledtext, messagebox
+import customtkinter as ctk
+from tkinter import messagebox, scrolledtext
 import threading
 import logging
 from typing import TYPE_CHECKING
@@ -10,7 +10,10 @@ if TYPE_CHECKING:
 class AnanSketchbookUI:
     def __init__(self, app: 'AnanSketchbookApp'):
         self.app = app
-        self.root = tk.Tk()
+        ctk.set_appearance_mode("System")  # 跟随系统主题
+        ctk.set_default_color_theme("blue")  # 使用蓝色主题
+        
+        self.root = ctk.CTk()
         self.root.title("安安的素描本聊天框")
         self.root.geometry("600x400")
         self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
@@ -29,16 +32,12 @@ class AnanSketchbookUI:
         
     def setup_ui(self):
         # 创建notebook用于分隔配置和日志
-        self.notebook = ttk.Notebook(self.root)
-        self.notebook.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+        self.notebook = ctk.CTkTabview(self.root)
+        self.notebook.pack(fill="both", expand=True, padx=10, pady=10)
         
-        # 配置页面
-        self.config_frame = ttk.Frame(self.notebook)
-        self.notebook.add(self.config_frame, text="配置")
-        
-        # 日志页面
-        self.log_frame = ttk.Frame(self.notebook)
-        self.notebook.add(self.log_frame, text="日志")
+        # 添加标签页
+        self.config_tab = self.notebook.add("配置")
+        self.log_tab = self.notebook.add("日志")
         
         # 配置界面元素
         self.setup_config_ui()
@@ -48,103 +47,107 @@ class AnanSketchbookUI:
         
     def setup_config_ui(self):
         # 主配置框架
-        main_config_frame = ttk.LabelFrame(self.config_frame, text="主要配置", padding=10)
-        main_config_frame.pack(fill=tk.X, padx=5, pady=5)
+        main_config_frame = ctk.CTkFrame(self.config_tab)
+        main_config_frame.pack(fill="x", padx=5, pady=5)
         
         # 热键配置
-        hotkey_frame = ttk.Frame(main_config_frame)
-        hotkey_frame.pack(fill=tk.X, pady=2)
-        ttk.Label(hotkey_frame, text="全局热键:").pack(side=tk.LEFT)
-        self.hotkey_var = tk.StringVar(value=self.app.config.hotkey)
-        ttk.Entry(hotkey_frame, textvariable=self.hotkey_var, width=20).pack(side=tk.RIGHT)
+        hotkey_frame = ctk.CTkFrame(main_config_frame)
+        hotkey_frame.pack(fill="x", pady=2)
+        ctk.CTkLabel(hotkey_frame, text="全局热键:").pack(side="left")
+        self.hotkey_var = ctk.StringVar(value=self.app.config.hotkey)
+        ctk.CTkEntry(hotkey_frame, textvariable=self.hotkey_var, width=200).pack(side="right")
         
         # 延迟配置
-        delay_frame = ttk.Frame(main_config_frame)
-        delay_frame.pack(fill=tk.X, pady=2)
-        ttk.Label(delay_frame, text="操作延迟(秒):").pack(side=tk.LEFT)
-        self.delay_var = tk.DoubleVar(value=self.app.config.delay)
-        ttk.Entry(delay_frame, textvariable=self.delay_var, width=20).pack(side=tk.RIGHT)
+        delay_frame = ctk.CTkFrame(main_config_frame)
+        delay_frame.pack(fill="x", pady=2)
+        ctk.CTkLabel(delay_frame, text="操作延迟(秒):").pack(side="left")
+        self.delay_var = ctk.DoubleVar(value=self.app.config.delay)
+        ctk.CTkEntry(delay_frame, textvariable=self.delay_var, width=200).pack(side="right")
         
         # 文本框坐标配置
-        textbox_frame = ttk.LabelFrame(self.config_frame, text="文本框坐标", padding=10)
-        textbox_frame.pack(fill=tk.X, padx=5, pady=5)
+        textbox_frame = ctk.CTkFrame(self.config_tab)
+        textbox_frame.pack(fill="x", padx=5, pady=5)
+        ctk.CTkLabel(textbox_frame, text="文本框坐标", font=ctk.CTkFont(size=14, weight="bold")).pack()
         
         # 左上角坐标
-        topleft_frame = ttk.Frame(textbox_frame)
-        topleft_frame.pack(fill=tk.X, pady=2)
-        ttk.Label(topleft_frame, text="左上角坐标(X,Y):").pack(side=tk.LEFT)
-        self.topleft_x_var = tk.IntVar(value=self.app.config.text_box_topleft[0])
-        self.topleft_y_var = tk.IntVar(value=self.app.config.text_box_topleft[1])
-        ttk.Entry(topleft_frame, textvariable=self.topleft_x_var, width=10).pack(side=tk.RIGHT)
-        ttk.Entry(topleft_frame, textvariable=self.topleft_y_var, width=10).pack(side=tk.RIGHT, padx=(0, 5))
+        topleft_frame = ctk.CTkFrame(textbox_frame)
+        topleft_frame.pack(fill="x", pady=2)
+        ctk.CTkLabel(topleft_frame, text="左上角坐标(X,Y):").pack(side="left")
+        self.topleft_x_var = ctk.IntVar(value=self.app.config.text_box_topleft[0])
+        self.topleft_y_var = ctk.IntVar(value=self.app.config.text_box_topleft[1])
+        ctk.CTkEntry(topleft_frame, textvariable=self.topleft_x_var, width=100).pack(side="right")
+        ctk.CTkEntry(topleft_frame, textvariable=self.topleft_y_var, width=100).pack(side="right", padx=(0, 5))
         
         # 右下角坐标
-        bottomright_frame = ttk.Frame(textbox_frame)
-        bottomright_frame.pack(fill=tk.X, pady=2)
-        ttk.Label(bottomright_frame, text="右下角坐标(X,Y):").pack(side=tk.LEFT)
-        self.bottomright_x_var = tk.IntVar(value=self.app.config.image_box_bottomright[0])
-        self.bottomright_y_var = tk.IntVar(value=self.app.config.image_box_bottomright[1])
-        ttk.Entry(bottomright_frame, textvariable=self.bottomright_x_var, width=10).pack(side=tk.RIGHT)
-        ttk.Entry(bottomright_frame, textvariable=self.bottomright_y_var, width=10).pack(side=tk.RIGHT, padx=(0, 5))
+        bottomright_frame = ctk.CTkFrame(textbox_frame)
+        bottomright_frame.pack(fill="x", pady=2)
+        ctk.CTkLabel(bottomright_frame, text="右下角坐标(X,Y):").pack(side="left")
+        self.bottomright_x_var = ctk.IntVar(value=self.app.config.image_box_bottomright[0])
+        self.bottomright_y_var = ctk.IntVar(value=self.app.config.image_box_bottomright[1])
+        ctk.CTkEntry(bottomright_frame, textvariable=self.bottomright_x_var, width=100).pack(side="right")
+        ctk.CTkEntry(bottomright_frame, textvariable=self.bottomright_y_var, width=100).pack(side="right", padx=(0, 5))
         
         # 功能开关框架
-        switches_frame = ttk.LabelFrame(self.config_frame, text="功能开关", padding=10)
-        switches_frame.pack(fill=tk.X, padx=5, pady=5)
+        switches_frame = ctk.CTkFrame(self.config_tab)
+        switches_frame.pack(fill="x", padx=5, pady=5)
+        ctk.CTkLabel(switches_frame, text="功能开关", font=ctk.CTkFont(size=14, weight="bold")).pack()
         
         # 自动粘贴开关
-        self.auto_paste_var = tk.BooleanVar(value=self.app.config.auto_paste_image)
-        auto_paste_check = ttk.Checkbutton(
+        self.auto_paste_var = ctk.BooleanVar(value=self.app.config.auto_paste_image)
+        auto_paste_switch = ctk.CTkSwitch(
             switches_frame, 
             text="自动粘贴图片", 
             variable=self.auto_paste_var
         )
-        auto_paste_check.pack(anchor=tk.W)
+        auto_paste_switch.pack(anchor="w", pady=2)
         
         # 自动发送开关
-        self.auto_send_var = tk.BooleanVar(value=self.app.config.auto_send_image)
-        auto_send_check = ttk.Checkbutton(
+        self.auto_send_var = ctk.BooleanVar(value=self.app.config.auto_send_image)
+        auto_send_switch = ctk.CTkSwitch(
             switches_frame, 
             text="自动发送图片", 
             variable=self.auto_send_var
         )
-        auto_send_check.pack(anchor=tk.W)
+        auto_send_switch.pack(anchor="w", pady=2)
         
         # 阻塞热键开关
-        self.block_hotkey_var = tk.BooleanVar(value=self.app.config.block_hotkey)
-        block_hotkey_check = ttk.Checkbutton(
+        self.block_hotkey_var = ctk.BooleanVar(value=self.app.config.block_hotkey)
+        block_hotkey_switch = ctk.CTkSwitch(
             switches_frame, 
             text="阻塞热键", 
             variable=self.block_hotkey_var
         )
-        block_hotkey_check.pack(anchor=tk.W)
+        block_hotkey_switch.pack(anchor="w", pady=2)
         
         # 控制按钮框架
-        button_frame = ttk.Frame(self.config_frame)
-        button_frame.pack(fill=tk.X, padx=5, pady=10)
+        button_frame = ctk.CTkFrame(self.config_tab)
+        button_frame.pack(fill="x", padx=5, pady=10)
         
-        ttk.Button(button_frame, text="保存配置", command=self.save_config).pack(side=tk.LEFT, padx=(0, 5))
-        ttk.Button(button_frame, text="应用配置", command=self.apply_config).pack(side=tk.LEFT, padx=(0, 5))
-        ttk.Button(button_frame, text="折叠", command=self.minimize).pack(side=tk.RIGHT)
+        ctk.CTkButton(button_frame, text="保存配置", command=self.save_config).pack(side="left", padx=(0, 5))
+        ctk.CTkButton(button_frame, text="应用配置", command=self.apply_config).pack(side="left", padx=(0, 5))
+        ctk.CTkButton(button_frame, text="折叠", command=self.minimize).pack(side="right")
         
     def setup_log_ui(self):
         # 日志显示区域
-        log_text_frame = ttk.Frame(self.log_frame)
-        log_text_frame.pack(fill=tk.BOTH, expand=True)
+        log_text_frame = ctk.CTkFrame(self.log_tab)
+        log_text_frame.pack(fill="both", expand=True)
         
         self.log_text = scrolledtext.ScrolledText(
             log_text_frame, 
             state='disabled', 
             wrap='word',
-            height=10
+            height=10,
+            bg="#202020" if ctk.get_appearance_mode() == "Dark" else "#ffffff",
+            fg="#ffffff" if ctk.get_appearance_mode() == "Dark" else "#000000"
         )
-        self.log_text.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
+        self.log_text.pack(fill="both", expand=True, padx=5, pady=5)
         
         # 日志控制按钮
-        log_control_frame = ttk.Frame(self.log_frame)
-        log_control_frame.pack(fill=tk.X, padx=5, pady=5)
+        log_control_frame = ctk.CTkFrame(self.log_tab)
+        log_control_frame.pack(fill="x", padx=5, pady=5)
         
-        ttk.Button(log_control_frame, text="清空日志", command=self.clear_log).pack(side=tk.LEFT)
-        ttk.Button(log_control_frame, text="折叠", command=self.minimize).pack(side=tk.RIGHT)
+        ctk.CTkButton(log_control_frame, text="清空日志", command=self.clear_log).pack(side="left")
+        ctk.CTkButton(log_control_frame, text="折叠", command=self.minimize).pack(side="right")
         
     def save_config(self):
         """保存配置到文件"""
@@ -186,14 +189,14 @@ class AnanSketchbookUI:
         self.root.overrideredirect(True)
         
         # 创建弹出按钮替代标题栏
-        self.popup_button = tk.Button(
+        self.popup_button = ctk.CTkButton(
             self.root, 
             text="安安的素描本", 
             command=self.restore,
-            bg="#4a90e2",
-            fg="white"
+            fg_color="#4a90e2",
+            hover_color="#3a70c2"
         )
-        self.popup_button.pack(fill=tk.BOTH, expand=True)
+        self.popup_button.pack(fill="both", expand=True)
         
     def restore(self):
         """恢复窗口"""
@@ -218,14 +221,14 @@ class AnanSketchbookUI:
     def append_log(self, message: str):
         """添加日志消息到UI"""
         self.log_text.config(state='normal')
-        self.log_text.insert(tk.END, message + '\n')
+        self.log_text.insert(ctk.END, message + '\n')
         self.log_text.config(state='disabled')
-        self.log_text.see(tk.END)
+        self.log_text.see(ctk.END)
         
     def clear_log(self):
         """清空日志"""
         self.log_text.config(state='normal')
-        self.log_text.delete(1.0, tk.END)
+        self.log_text.delete(1.0, ctk.END)
         self.log_text.config(state='disabled')
 
 

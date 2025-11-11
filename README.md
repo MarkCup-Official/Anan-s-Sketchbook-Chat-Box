@@ -16,6 +16,7 @@
 - ⌨️ 快捷键操作：通过热键快速切换表情和生成图片
 - 🔧 高度可配置：几乎所有参数都可以通过配置文件自定义
 - 🔄 自动发送：生成图像后可自动粘贴并发送消息
+- 🎨 现代化界面：使用CustomTkinter构建的现代化用户界面
 
 ## 系统要求
 
@@ -32,7 +33,7 @@ python官方下载地址：https://www.python.org/downloads/
 国内镜像：https://mirrors.tuna.tsinghua.edu.cn/python/  
 直链下载链接：https://www.python.org/ftp/python/3.8.10/python-3.8.10-amd64.exe  
 镜像下载链接：https://mirrors.tuna.tsinghua.edu.cn/python/3.8.2/python-3.8.2-amd64.exe  
-安装时勾选“添加 Python 到 PATH”  
+安装时勾选"添加 Python 到 PATH"  
 
 2. 下载代码
 点击绿色 Code 按钮，选择 Download Zip，等待下载完成
