@@ -59,28 +59,6 @@ def copy_png_bytes_to_clipboard(png_bytes: bytes):
     win32clipboard.CloseClipboard()
 
 
-def cut_all_and_get_text() -> Tuple[str, str]:
-    """
-    模拟 Ctrl+A / Ctrl+X 剪切用户输入的全部文本，并返回剪切得到的内容和原始剪贴板的文本内容。
-
-    这个函数会备份当前剪贴板中的文本内容，然后清空剪贴板。
-    """
-    # 备份原剪贴板(只能备份文本内容)
-    old_clip = pyperclip.paste()
-
-    # 清空剪贴板，防止读到旧数据
-    pyperclip.copy("")
-
-    # 发送 Ctrl+A 和 Ctrl+X
-    keyboard.send(config.select_all_hotkey)
-    keyboard.send(config.cut_hotkey)
-    time.sleep(config.delay)
-
-    # 获取剪切后的内容
-    new_clip = pyperclip.paste()
-
-    return new_clip, old_clip
-
 
 def try_get_image() -> Optional[Image.Image]:
     """
@@ -141,9 +119,21 @@ def generate_image():
                 keyboard.send(config.hotkey)
             return
 
-    # `cut_all_and_get_text` 会清空剪切板，所以 `try_get_image` 要在前面调用
+    # 备份原剪贴板(只能备份文本内容)
+    old_clipboard_content = pyperclip.paste()
+    
+    # 清空剪贴板，防止读到旧数据
+    pyperclip.copy("")
+
+    # 发送 Ctrl+A 和 Ctrl+X
+    keyboard.send(config.select_all_hotkey)
+    keyboard.send(config.cut_hotkey)
+    time.sleep(config.delay)
+
+    # 获取图片
     user_pasted_image = try_get_image()
-    user_input, old_clipboard_content = cut_all_and_get_text()
+    # 获取文本
+    user_input = pyperclip.paste()
     logging.debug(f"用户粘贴图片: {user_pasted_image is not None}")
     logging.debug(f"用户输入的文本内容: {user_input}")
     logging.debug(f"历史剪贴板内容: {old_clipboard_content}")

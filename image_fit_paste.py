@@ -24,7 +24,7 @@ def paste_image_auto(
     """
     在指定矩形内放置一张图片（content_image），按比例缩放至“最大但不超过”该矩形。
 
-    : param base_image: 底图（会被复制，原图不改）
+    : param image_source: 底图（会被复制，原图不改）
     : param top_left: 指定矩形区域（左上坐标）
     : param bottom_right: 指定矩形区域（右下坐标）
     : param content_image: 待放入的图片（PIL.Image.Image）
