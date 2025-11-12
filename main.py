@@ -3,6 +3,7 @@ import io
 import logging
 import time
 from typing import Optional, Tuple
+import re
 
 import keyboard
 import psutil
@@ -82,58 +83,78 @@ def copy_png_bytes_to_clipboard(png_bytes: bytes):
     win32clipboard.CloseClipboard()
 
 
-def cut_all_and_get_text() -> Tuple[str, str]:
-    """
-    模拟 Ctrl+A / Ctrl+X 剪切用户输入的全部文本，并返回剪切得到的内容和原始剪贴板的文本内容。
-
-    这个函数会备份当前剪贴板中的文本内容，然后清空剪贴板。
-    """
-    # 备份原剪贴板(只能备份文本内容)
-    old_clip = pyperclip.paste()
-
-    # 清空剪贴板，防止读到旧数据
-    pyperclip.copy("")
-
-    # 发送 Ctrl+A 和 Ctrl+X
-    keyboard.send(config.select_all_hotkey)
-    keyboard.send(config.cut_hotkey)
-    time.sleep(config.delay)
-
-    # 获取剪切后的内容
-    new_clip = pyperclip.paste()
-
-    return new_clip, old_clip
 
 
 def try_get_image() -> Optional[Image.Image]:
     """
     尝试从剪贴板获取图像，如果没有图像则返回 None。
     仅支持 Windows。
+
+    当文本框中同时有图片和文字时
+    QQ与微信的剪贴板数据中不存在DIB文件
+    此时需要从其封装的HTML中提取图片本地路径
     """
     image = None  # 确保无论如何都定义了 image
+    html = None
 
     try:
+
+        # 检查剪贴板中是否有html文件
+        fmt_html = win32clipboard.RegisterClipboardFormat("HTML Format")
+
         win32clipboard.OpenClipboard()
 
-        # 检查剪贴板中是否有 DIB 格式的图像
-        if not win32clipboard.IsClipboardFormatAvailable(win32clipboard.CF_DIB):
-            return None
+        if win32clipboard.IsClipboardFormatAvailable(win32clipboard.CF_DIB):
 
-        # 获取 DIB 格式的图像数据
-        data = win32clipboard.GetClipboardData(win32clipboard.CF_DIB)
-        if not data:
-            return None
+            # 获取 DIB 格式的图像数据
+            data = win32clipboard.GetClipboardData(win32clipboard.CF_DIB)
+            if not data:
+                return None
+            
+            # 将 DIB 数据转换为字节流，供 Pillow 打开
+            bmp_data = data
+            # DIB 格式缺少 BMP 文件头，需要手动加上
+            # BMP 文件头是 14 字节，包含 "BM" 标识和文件大小信息
+            header = (
+                b"BM"
+                + (len(bmp_data) + 14).to_bytes(4, "little")
+                + b"\x00\x00\x00\x00\x36\x00\x00\x00"
+            )
+            image = Image.open(io.BytesIO(header + bmp_data))
 
-        # 将 DIB 数据转换为字节流，供 Pillow 打开
-        bmp_data = data
-        # DIB 格式缺少 BMP 文件头，需要手动加上
-        # BMP 文件头是 14 字节，包含 "BM" 标识和文件大小信息
-        header = (
-            b"BM"
-            + (len(bmp_data) + 14).to_bytes(4, "little")
-            + b"\x00\x00\x00\x00\x36\x00\x00\x00"
-        )
-        image = Image.open(io.BytesIO(header + bmp_data))
+        elif win32clipboard.IsClipboardFormatAvailable(fmt_html):
+
+            # 获取html中的图像路径
+            
+            logging.debug("已获取html")
+        
+            html = win32clipboard.GetClipboardData(fmt_html)
+            if not html:
+                logging.warning("剪贴板中的 HTML 数据为空")
+                return None
+            
+            # 将获取的html数据解码为字符串
+            if isinstance(html, bytes):
+                html = html.decode("utf-8", errors="ignore")
+
+            # 获取文件路径
+            pattern = re.compile(r'<img\s+[^>]*src=["\']([^"\']+)["\']', re.IGNORECASE)
+            match = pattern.search(html)
+            if not match:
+                logging.warning("未在 HTML 数据中找到图像")
+                return None
+
+            src = match.group(1)
+            if src.startswith("file:///"):
+                # QQ会给图片路径加上如上的前缀，此时需要去掉
+                src = src[8:]
+            try:
+                image = Image.open(src)
+            except Exception as e:
+                logging.warning(f"无法打开本地图像: {e}")
+            
+        else : return None
+        
 
     except Exception as e:
         logging.error("无法从剪贴板获取图像：%s", e)
@@ -313,9 +334,21 @@ def generate_image():
                 keyboard.send(config.hotkey)
             return
 
-    # `cut_all_and_get_text` 会清空剪切板，所以 `try_get_image` 要在前面调用
+    # 备份原剪贴板(只能备份文本内容)
+    old_clipboard_content = pyperclip.paste()
+
+    # 清空剪贴板，防止读到旧数据
+    pyperclip.copy("")
+
+    # 发送 Ctrl+A 和 Ctrl+X
+    keyboard.send(config.select_all_hotkey)
+    keyboard.send(config.cut_hotkey)
+    time.sleep(config.delay)
+
+    # 获取图片内容
     user_pasted_image = try_get_image()
-    user_input, old_clipboard_content = cut_all_and_get_text()
+    # 获取文本内容
+    user_input = pyperclip.paste()
     logging.debug(f"用户粘贴图片: {user_pasted_image is not None}")
     logging.debug(f"用户输入的文本内容: {user_input}")
     logging.debug(f"历史剪贴板内容: {old_clipboard_content}")
