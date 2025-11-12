@@ -2,6 +2,7 @@
 /__pycache__/
 build/
 dist/
+logs
 *.spec
 *.pyc
 *.pyo

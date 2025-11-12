@@ -258,6 +258,7 @@ class AnanSketchbookUI:
             font=self.custom_font,
             corner_radius=8,
             height=35,
+            width=120,
             fg_color=("#3090f0", "#2070c0"),
             hover_color=("#2070c0", "#105090")
         ).pack(side="left", padx=(20, 10), pady=15)
@@ -269,6 +270,7 @@ class AnanSketchbookUI:
             font=self.custom_font,
             corner_radius=8,
             height=35,
+            width=120,
             fg_color=("#3090f0", "#2070c0"),
             hover_color=("#2070c0", "#105090")
         ).pack(side="left", padx=10, pady=15)
@@ -280,6 +282,7 @@ class AnanSketchbookUI:
             font=self.custom_font,
             corner_radius=8,
             height=35,
+            width=120,
             fg_color=("#3090f0", "#2070c0"),
             hover_color=("#2070c0", "#105090")
         ).pack(side="left", padx=10, pady=15)
@@ -291,6 +294,7 @@ class AnanSketchbookUI:
             font=self.custom_font,
             corner_radius=8,
             height=35,
+            width=120,
             fg_color=("#60a0f0", "#3070c0"),
             hover_color=("#5090e0", "#2060a0")
         ).pack(side="right", padx=(10, 20), pady=15)

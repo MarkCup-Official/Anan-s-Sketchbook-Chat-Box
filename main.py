@@ -12,6 +12,9 @@ import win32clipboard
 import win32gui
 import win32process
 from PIL import Image
+# 添加日志轮转所需的导入
+import os
+from logging.handlers import RotatingFileHandler
 
 from config_loader import load_config
 from image_fit_paste import paste_image_auto
@@ -71,6 +74,31 @@ class AnanSketchbookApp:
 
     def setup_logging(self):
         """设置日志记录"""
+        # 创建logs目录（如果不存在）
+        if not os.path.exists('logs'):
+            os.makedirs('logs')
+        
+        # 创建旋转文件处理器，每个文件最大50KB，最多保留1个备份文件
+        file_handler = RotatingFileHandler(
+            filename="logs/app.log",
+            maxBytes=50*1024,  # 50KB
+            backupCount=1,
+            encoding='utf-8'
+        )
+        
+        # 文件日志始终使用DEBUG级别
+        file_handler.setLevel(logging.DEBUG)
+        
+        # 配置格式器
+        formatter = logging.Formatter("%(asctime)s [%(levelname)s] %(message)s")
+        file_handler.setFormatter(formatter)
+        
+        # 获取根日志记录器并添加处理器
+        root_logger = logging.getLogger()
+        root_logger.setLevel(logging.DEBUG)
+        root_logger.addHandler(file_handler)
+        
+        # UI中使用配置的级别
         logging.basicConfig(
             level=getattr(logging, self.config.logging_level.upper(), logging.INFO),
             format="%(asctime)s [%(levelname)s] %(message)s",
