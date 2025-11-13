@@ -98,11 +98,7 @@ class AnanSketchbookApp:
         root_logger.setLevel(logging.DEBUG)
         root_logger.addHandler(file_handler)
         
-        # UI中使用配置的级别
-        logging.basicConfig(
-            level=getattr(logging, self.config.logging_level.upper(), logging.INFO),
-            format="%(asctime)s [%(levelname)s] %(message)s",
-        )
+        # 注意：不在这里设置UI日志级别，而是在UITextHandler的构造函数中设置
 
     def rebind_hotkey(self):
         """重新绑定热键"""

@@ -920,9 +920,13 @@ class UITextHandler(logging.Handler):
     def __init__(self, ui: AnanSketchbookUI):
         super().__init__()
         self.ui = ui
+        # 添加日志级别过滤器，根据配置设置级别
+        self.setLevel(getattr(logging, ui.app.config.logging_level.upper(), logging.INFO))
         
     def emit(self, record):
-        msg = self.format(record)
-        # 使用线程安全的方式更新UI
-        if self.ui.root:
-            self.ui.root.after(0, self.ui.append_log, msg)
+        # 检查日志级别是否符合要求
+        if record.levelno >= self.level:
+            msg = self.format(record)
+            # 使用线程安全的方式更新UI
+            if self.ui.root:
+                self.ui.root.after(0, self.ui.append_log, msg)
