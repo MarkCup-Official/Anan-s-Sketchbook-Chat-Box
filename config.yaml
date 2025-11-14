@@ -33,13 +33,19 @@ font_file: font.ttf
 
 # 将差分表情导入，默认底图base.png
 baseimage_mapping:
-  '#普通#': BaseImages\base.png
-  '#开心#': BaseImages\开心.png
-  '#生气#': BaseImages\生气.png
-  '#无语#': BaseImages\无语.png
-  '#脸红#': BaseImages\脸红.png
-  '#病娇#': BaseImages\病娇.png
-baseimage_file: BaseImages\base.png
+  "#普通#": "BaseImages\\base.png"
+  "#开心#": "BaseImages\\开心.png"
+  "#生气#": "BaseImages\\生气.png"
+  "#无语#": "BaseImages\\无语.png"
+  "#脸红#": "BaseImages\\脸红.png"
+  "#病娇#": "BaseImages\\病娇.png"
+  "#闭眼#": "BaseImages\\闭眼.png"
+  "#难受#": "BaseImages\\难受.png"
+  "#害怕#": "BaseImages\\害怕.png"
+  "#激动#": "BaseImages\\激动.png"
+  "#惊讶#": "BaseImages\\惊讶.png"
+  "#哭泣#": "BaseImages\\哭泣.png"
+baseimage_file: BaseImages\\base.png
 
 # 文本框左上角坐标 (x, y), 同时适用于图片框
 text_box_topleft:
@@ -48,7 +54,7 @@ text_box_topleft:
 image_box_bottomright:
 - 398
 - 625
-base_overlay_file: BaseImages\base_overlay.png
+base_overlay_file: BaseImages\\base_overlay.png
 
 # 是否启用底图的置顶图层, 用于表现遮挡
 use_base_overlay: true
@@ -70,6 +76,12 @@ emotion_switch_hotkeys:
   alt+4: '#无语#'
   alt+5: '#脸红#'
   alt+6: '#病娇#'
+  alt+7: '#闭眼#'
+  alt+8: '#难受#'
+  alt+9: '#害怕#'
+  alt+0: '#激动#'
+  alt+q: '#惊讶#'
+  alt+w: '#哭泣#'
 ui_settings:
   font_family: Microsoft YaHei
   font_size: 10
