@@ -2,6 +2,7 @@
 /__pycache__/
 build/
 dist/
+ai_usage
 *.spec
 *.pyc
 *.pyo
