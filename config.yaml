@@ -40,6 +40,12 @@ baseimage_mapping:
   "#无语#": "BaseImages\\无语.png"
   "#脸红#": "BaseImages\\脸红.png"
   "#病娇#": "BaseImages\\病娇.png"
+  "#闭眼#": "BaseImages\\闭眼.png"
+  "#难受#": "BaseImages\\难受.png"
+  "#害怕#": "BaseImages\\害怕.png"
+  "#激动#": "BaseImages\\激动.png"
+  "#惊讶#": "BaseImages\\惊讶.png"
+  "#哭泣#": "BaseImages\\哭泣.png"
 
 baseimage_file: "BaseImages\\base.png"
 
@@ -72,3 +78,9 @@ emotion_switch_hotkeys:
   "alt+4": "#无语#"
   "alt+5": "#脸红#"
   "alt+6": "#病娇#"
+  "alt+7": "#闭眼#"
+  "alt+8": "#难受#"
+  "alt+9": "#害怕#"
+  "alt+0": "#激动#"
+  "alt+q": "#惊讶#"
+  "alt+w": "#哭泣#"
