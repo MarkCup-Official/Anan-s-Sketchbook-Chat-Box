@@ -32,6 +32,8 @@ class Config(BaseModel):
     """阻塞热键"""
     delay: float = 0.1
     """操作延时（秒）"""
+    key_delay: float = 0.01
+    """按键间延时（秒）"""
     font_file: str = "font.ttf"
     """字体文件路径"""
     baseimage_mapping: Dict[str, str] = {

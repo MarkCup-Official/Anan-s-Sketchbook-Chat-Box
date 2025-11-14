@@ -179,6 +179,7 @@ class AnanSketchbookApp:
 
         # 发送 Ctrl+A 和 Ctrl+X
         keyboard.send(self.config.select_all_hotkey)
+        time.sleep(self.config.key_delay)
         keyboard.send(self.config.cut_hotkey)
         time.sleep(self.config.delay)
 
@@ -426,11 +427,13 @@ class AnanSketchbookApp:
 
         if self.config.auto_paste_image:
             keyboard.send(self.config.paste_hotkey)
+            time.sleep(self.config.key_delay)
 
             time.sleep(self.config.delay)
 
             if self.config.auto_send_image:
                 keyboard.send(self.config.send_hotkey)
+                time.sleep(self.config.key_delay)
 
         # 恢复原始剪贴板内容
         pyperclip.copy(old_clipboard_content)

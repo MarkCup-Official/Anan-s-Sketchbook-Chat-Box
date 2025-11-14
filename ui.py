@@ -15,6 +15,13 @@ try:
 except ImportError:
     PYSTRAY_AVAILABLE = False
 
+# 导入 ruamel.yaml 以支持保留注释的YAML操作
+try:
+    from ruamel.yaml import YAML
+    RUAMEL_YAML_AVAILABLE = True
+except ImportError:
+    RUAMEL_YAML_AVAILABLE = False
+
 if TYPE_CHECKING:
     from main import AnanSketchbookApp
 
@@ -164,6 +171,14 @@ class AnanSketchbookUI:
         self.delay_var = ctk.DoubleVar(value=self.app.config.delay)
         delay_entry = ctk.CTkEntry(delay_frame, textvariable=self.delay_var, width=200, font=self.custom_font)
         delay_entry.pack(side="right", padx=10, pady=10)
+        
+        # 按键间延迟配置
+        key_delay_frame = ctk.CTkFrame(main_config_frame, corner_radius=8)
+        key_delay_frame.pack(fill="x", pady=5, padx=20)
+        ctk.CTkLabel(key_delay_frame, text="按键间延迟(秒):", font=self.custom_font).pack(side="left", padx=10, pady=10)
+        self.key_delay_var = ctk.DoubleVar(value=self.app.config.key_delay)
+        key_delay_entry = ctk.CTkEntry(key_delay_frame, textvariable=self.key_delay_var, width=200, font=self.custom_font)
+        key_delay_entry.pack(side="right", padx=10, pady=10)
         
         # 坐标配置框架
         coord_frame = ctk.CTkFrame(config_canvas, corner_radius=10)
@@ -670,10 +685,164 @@ class AnanSketchbookUI:
     def save_config(self):
         """保存配置到文件"""
         try:
-            # TODO: 实现配置保存到文件
-            messagebox.showinfo("提示", "配置保存功能将在后续实现")
+            # 检查高级配置窗口中的组件是否仍然存在
+            allowed_processes = []
+            emotion_switch_hotkeys = {}
+            
+            # 只有当高级配置窗口存在时才尝试获取其中的值
+            if hasattr(self, 'advanced_window') and self.advanced_window.winfo_exists():
+                # 获取允许的进程列表
+                processes_text = self.adv_allowed_processes_text.get("0.0", "end").strip()
+                allowed_processes = [p.strip() for p in processes_text.split("\n") if p.strip()]
+                
+                # 获取表情切换快捷键映射
+                emotion_text = self.adv_emotion_switch_text.get("0.0", "end").strip()
+                for line in emotion_text.split("\n"):
+                    if "=" in line:
+                        hotkey, emotion = line.split("=", 1)
+                        emotion_switch_hotkeys[hotkey.strip()] = emotion.strip()
+            else:
+                # 如果高级配置窗口不存在，使用当前配置中的值
+                allowed_processes = self.app.config.allowed_processes
+                emotion_switch_hotkeys = self.app.config.emotion_switch_hotkeys
+            
+            # 如果 ruamel.yaml 可用，则使用它来保留注释
+            if RUAMEL_YAML_AVAILABLE:
+                # 读取现有的配置文件以保留注释
+                yaml = YAML()
+                yaml.preserve_quotes = True
+                yaml.width = 4096  # 防止换行
+                
+                if os.path.exists('config.yaml'):
+                    with open('config.yaml', 'r', encoding='utf-8') as f:
+                        config_yaml = yaml.load(f)
+                else:
+                    config_yaml = {}
+                
+                # 更新配置值但保留注释
+                config_yaml['hotkey'] = self.hotkey_var.get()
+                config_yaml['allowed_processes'] = allowed_processes
+                config_yaml['select_all_hotkey'] = self.adv_select_all_hotkey_var.get() if hasattr(self, 'adv_select_all_hotkey_var') else self.app.config.select_all_hotkey
+                config_yaml['cut_hotkey'] = self.adv_cut_hotkey_var.get() if hasattr(self, 'adv_cut_hotkey_var') else self.app.config.cut_hotkey
+                config_yaml['paste_hotkey'] = self.adv_paste_hotkey_var.get() if hasattr(self, 'adv_paste_hotkey_var') else self.app.config.paste_hotkey
+                config_yaml['send_hotkey'] = self.adv_send_hotkey_var.get() if hasattr(self, 'adv_send_hotkey_var') else self.app.config.send_hotkey
+                config_yaml['block_hotkey'] = self.block_hotkey_var.get()
+                config_yaml['delay'] = self.delay_var.get()
+                config_yaml['key_delay'] = self.key_delay_var.get()
+                config_yaml['font_file'] = self.adv_font_file_var.get() if hasattr(self, 'adv_font_file_var') else self.app.config.font_file
+                
+                # 处理 baseimage_mapping
+                config_yaml['baseimage_mapping'] = {}
+                # 添加差分表情映射（如果高级窗口存在）
+                if hasattr(self, 'adv_emotion_switch_text') and hasattr(self.adv_emotion_switch_text, 'winfo_exists') and self.adv_emotion_switch_text.winfo_exists():
+                    mapping_lines = self.adv_emotion_switch_text.get("0.0", "end").strip().split('\n')
+                    for line in mapping_lines:
+                        if '=' in line:
+                            key, value = line.split('=', 1)
+                            config_yaml['baseimage_mapping'][key.strip()] = value.strip()
+                else:
+                    # 如果高级配置窗口不存在，使用当前配置中的值
+                    # 从当前UI中的表情映射文本框读取（基础配置界面）
+                    try:
+                        mapping_text = self.emotion_mapping_textbox.get("1.0", "end").strip()
+                        for line in mapping_text.split('\n'):
+                            if ':' in line:
+                                key, value = line.split(':', 1)
+                                config_yaml['baseimage_mapping'][key.strip()] = value.strip()
+                    except Exception as e:
+                        # 如果出现任何问题，至少保证有默认的映射
+                        config_yaml['baseimage_mapping'] = self.app.config.baseimage_mapping
+                        
+                config_yaml['baseimage_file'] = self.adv_baseimage_file_var.get() if hasattr(self, 'adv_baseimage_file_var') else self.app.config.baseimage_file
+                config_yaml['text_box_topleft'] = [self.topleft_x_var.get(), self.topleft_y_var.get()]
+                config_yaml['image_box_bottomright'] = [self.bottomright_x_var.get(), self.bottomright_y_var.get()]
+                config_yaml['base_overlay_file'] = self.adv_base_overlay_file_var.get() if hasattr(self, 'adv_base_overlay_file_var') else self.app.config.base_overlay_file
+                config_yaml['use_base_overlay'] = self.adv_use_base_overlay_var.get() if hasattr(self, 'adv_use_base_overlay_var') else self.app.config.use_base_overlay
+                config_yaml['auto_paste_image'] = self.auto_paste_var.get()
+                config_yaml['auto_send_image'] = self.auto_send_var.get()
+                config_yaml['logging_level'] = self.adv_logging_level_var.get() if hasattr(self, 'adv_logging_level_var') else self.app.config.logging_level
+                config_yaml['emotion_switch_hotkeys'] = emotion_switch_hotkeys
+                config_yaml['ui_settings'] = {
+                    'font_family': self.adv_ui_font_family_var.get() if hasattr(self, 'adv_ui_font_family_var') else self.app.config.ui_settings.font_family,
+                    'font_size': self.adv_ui_font_size_var.get() if hasattr(self, 'adv_ui_font_size_var') else self.app.config.ui_settings.font_size,
+                    'title_font_size': self.adv_ui_title_font_size_var.get() if hasattr(self, 'adv_ui_title_font_size_var') else self.app.config.ui_settings.title_font_size,
+                    'window_width': 800,  # 默认值
+                    'window_height': 600,  # 默认值
+                    'theme': 'blue'  # 默认值
+                }
+
+                # 写入YAML文件，保留注释
+                with open('config.yaml', 'w', encoding='utf-8') as f:
+                    yaml.dump(config_yaml, f)
+            else:
+                # 如果 ruamel.yaml 不可用，回退到原来的实现（会丢失注释）
+                # 收集配置数据
+                config_data = {
+                    'hotkey': self.hotkey_var.get(),
+                    'allowed_processes': allowed_processes,
+                    'select_all_hotkey': self.adv_select_all_hotkey_var.get() if hasattr(self, 'adv_select_all_hotkey_var') else self.app.config.select_all_hotkey,
+                    'cut_hotkey': self.adv_cut_hotkey_var.get() if hasattr(self, 'adv_cut_hotkey_var') else self.app.config.cut_hotkey,
+                    'paste_hotkey': self.adv_paste_hotkey_var.get() if hasattr(self, 'adv_paste_hotkey_var') else self.app.config.paste_hotkey,
+                    'send_hotkey': self.adv_send_hotkey_var.get() if hasattr(self, 'adv_send_hotkey_var') else self.app.config.send_hotkey,
+                    'block_hotkey': self.block_hotkey_var.get(),
+                    'delay': self.delay_var.get(),
+                    'key_delay': self.key_delay_var.get(),
+                    'font_file': self.adv_font_file_var.get() if hasattr(self, 'adv_font_file_var') else self.app.config.font_file,
+                    'baseimage_mapping': {},
+                    'baseimage_file': self.adv_baseimage_file_var.get() if hasattr(self, 'adv_baseimage_file_var') else self.app.config.baseimage_file,
+                    'text_box_topleft': [self.topleft_x_var.get(), self.topleft_y_var.get()],
+                    'image_box_bottomright': [self.bottomright_x_var.get(), self.bottomright_y_var.get()],
+                    'base_overlay_file': self.adv_base_overlay_file_var.get() if hasattr(self, 'adv_base_overlay_file_var') else self.app.config.base_overlay_file,
+                    'use_base_overlay': self.adv_use_base_overlay_var.get() if hasattr(self, 'adv_use_base_overlay_var') else self.app.config.use_base_overlay,
+                    'auto_paste_image': self.auto_paste_var.get(),
+                    'auto_send_image': self.auto_send_var.get(),
+                    'logging_level': self.adv_logging_level_var.get() if hasattr(self, 'adv_logging_level_var') else self.app.config.logging_level,
+                    'emotion_switch_hotkeys': emotion_switch_hotkeys,
+                    'ui_settings': {
+                        'font_family': self.adv_ui_font_family_var.get() if hasattr(self, 'adv_ui_font_family_var') else self.app.config.ui_settings.font_family,
+                        'font_size': self.adv_ui_font_size_var.get() if hasattr(self, 'adv_ui_font_size_var') else self.app.config.ui_settings.font_size,
+                        'title_font_size': self.adv_ui_title_font_size_var.get() if hasattr(self, 'adv_ui_title_font_size_var') else self.app.config.ui_settings.title_font_size,
+                        'window_width': 800,  # 默认值
+                        'window_height': 600,  # 默认值
+                        'theme': 'blue'  # 默认值
+                    }
+                }
+                
+                # 添加差分表情映射（如果高级窗口存在）
+                if hasattr(self, 'adv_emotion_switch_text') and hasattr(self.adv_emotion_switch_text, 'winfo_exists') and self.adv_emotion_switch_text.winfo_exists():
+                    mapping_lines = self.adv_emotion_switch_text.get("0.0", "end").strip().split('\n')
+                    for line in mapping_lines:
+                        if '=' in line:
+                            key, value = line.split('=', 1)
+                            config_data['baseimage_mapping'][key.strip()] = value.strip()
+                else:
+                    # 如果高级配置窗口不存在，使用当前配置中的值
+                    # 从当前UI中的表情映射文本框读取（基础配置界面）
+                    try:
+                        mapping_text = self.emotion_mapping_textbox.get("1.0", "end").strip()
+                        for line in mapping_text.split('\n'):
+                            if ':' in line:
+                                key, value = line.split(':', 1)
+                                config_data['baseimage_mapping'][key.strip()] = value.strip()
+                    except Exception as e:
+                        # 如果出现任何问题，至少保证有默认的映射
+                        config_data['baseimage_mapping'] = self.app.config.baseimage_mapping
+                
+                # 写入YAML文件
+                import yaml
+                with open('config.yaml', 'w', encoding='utf-8') as f:
+                    yaml.dump(config_data, f, allow_unicode=True, sort_keys=False, indent=2)
+            
+            # 更新应用配置
+            from config_loader import load_config
+            self.app.config = load_config()
+            
+            # 显示成功消息
+            messagebox.showinfo("成功", "配置已保存！重启程序以应用某些更改。")
+            
         except Exception as e:
-            messagebox.showerror("错误", f"保存配置时发生错误: {str(e)}")
+            messagebox.showerror("错误", f"保存配置时出错：{str(e)}")
+            logging.error(f"保存配置时出错：{str(e)}")
             
     def apply_config(self):
         """应用配置到运行时"""
@@ -912,7 +1081,51 @@ class AnanSketchbookUI:
         self.log_text.config(state='normal')
         self.log_text.delete(1.0, ctk.END)
         self.log_text.config(state='disabled')
-
+        
+    def load_config_to_ui(self):
+        """将配置加载到UI控件中"""
+        config = self.app.config
+        
+        # 基础设置
+        self.hotkey_var.set(config.hotkey)
+        self.allowed_processes_var.set('\n'.join(config.allowed_processes))
+        self.select_all_hotkey_var.set(config.select_all_hotkey)
+        self.cut_hotkey_var.set(config.cut_hotkey)
+        self.paste_hotkey_var.set(config.paste_hotkey)
+        self.send_hotkey_var.set(config.send_hotkey)
+        self.block_hotkey_var.set(config.block_hotkey)
+        self.delay_var.set(config.delay)
+        self.key_delay_var.set(config.key_delay)
+        self.font_file_var.set(config.font_file)
+        self.baseimage_file_var.set(config.baseimage_file)
+        self.topleft_x_var.set(config.text_box_topleft[0])
+        self.topleft_y_var.set(config.text_box_topleft[1])
+        self.bottomright_x_var.set(config.image_box_bottomright[0])
+        self.bottomright_y_var.set(config.image_box_bottomright[1])
+        self.overlay_file_var.set(config.base_overlay_file)
+        self.use_overlay_var.set(config.use_base_overlay)
+        self.auto_paste_var.set(config.auto_paste_image)
+        self.auto_send_var.set(config.auto_send_image)
+        self.logging_level_var.set(config.logging_level)
+        
+        # UI设置
+        ui_settings = config.ui_settings
+        self.font_family_var.set(ui_settings.font_family)
+        self.font_size_var.set(ui_settings.font_size)
+        self.title_font_size_var.set(ui_settings.title_font_size)
+        self.window_width_var.set(ui_settings.window_width)
+        self.window_height_var.set(ui_settings.window_height)
+        self.theme_var.set(ui_settings.theme)
+        
+        # 差分表情映射
+        emotion_mapping_text = '\n'.join([f'{k}: {v}' for k, v in config.baseimage_mapping.items()])
+        self.emotion_mapping_textbox.delete("1.0", "end")
+        self.emotion_mapping_textbox.insert("1.0", emotion_mapping_text)
+        
+        # 表情切换快捷键映射
+        emotion_hotkey_text = '\n'.join([f'{k}: {v}' for k, v in config.emotion_switch_hotkeys.items()])
+        self.emotion_hotkey_textbox.delete("1.0", "end")
+        self.emotion_hotkey_textbox.insert("1.0", emotion_hotkey_text)
 
 class UITextHandler(logging.Handler):
     """自定义日志处理器，将日志输出到UI"""

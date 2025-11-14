@@ -9,8 +9,7 @@ hotkey: enter
 allowed_processes:
 - qq.exe
 - weixin.exe
-
-# 全选快捷键, 此按键并不会监听, 而是会作为模拟输入
+- discord.exe
 select_all_hotkey: ctrl+a
 
 # 剪切快捷键, 此按键并不会监听, 而是会作为模拟输入
@@ -40,20 +39,15 @@ baseimage_mapping:
   '#无语#': BaseImages\无语.png
   '#脸红#': BaseImages\脸红.png
   '#病娇#': BaseImages\病娇.png
-
 baseimage_file: BaseImages\base.png
 
 # 文本框左上角坐标 (x, y), 同时适用于图片框
 text_box_topleft:
 - 119
 - 450
-
-# 文本框右下角坐标 (x, y), 同时适用于图片框
 image_box_bottomright:
 - 398
 - 625
-
-# 置顶图层的文件名, 需要自己导入
 base_overlay_file: BaseImages\base_overlay.png
 
 # 是否启用底图的置顶图层, 用于表现遮挡
@@ -76,8 +70,11 @@ emotion_switch_hotkeys:
   alt+4: '#无语#'
   alt+5: '#脸红#'
   alt+6: '#病娇#'
-
 ui_settings:
   font_family: Microsoft YaHei
   font_size: 10
   title_font_size: 12
+  window_width: 800
+  window_height: 600
+  theme: blue
+key_delay: 0.01
