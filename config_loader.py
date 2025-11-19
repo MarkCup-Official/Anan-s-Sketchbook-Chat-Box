@@ -1,6 +1,6 @@
 import os
 import yaml
-from typing import Dict, Any, Tuple, List
+from typing import Dict, Any, Tuple, List, Optional
 from pydantic import BaseModel
 
 
@@ -24,6 +24,8 @@ class Config(BaseModel):
     """操作延时（秒）"""
     font_file: str = "font.ttf"
     """字体文件路径"""
+    emoji_font_file: Optional[str] = None
+    """emoji字体文件路径，如果提供则emoji字符将使用此字体"""
     baseimage_mapping: Dict[str, str] = {
         "#普通#": "BaseImages\\base.png"
     }

@@ -196,6 +196,7 @@ def process_text_and_image(text: str, image: Optional[Image.Image]) -> Optional[
                 color=(0, 0, 0),
                 max_font_height=64,
                 font_path=config.font_file,
+                emoji_font_path=getattr(config, 'emoji_font_file', None),
                 wrap_algorithm=config.text_wrap_algorithm,  # 添加这一行以使用配置的算法
             )
         except Exception as e:
@@ -246,6 +247,7 @@ def process_text_and_image(text: str, image: Optional[Image.Image]) -> Optional[
                     color=(0, 0, 0),
                     max_font_height=64,
                     font_path=config.font_file,
+                    emoji_font_path=getattr(config, 'emoji_font_file', None),
                     wrap_algorithm=config.text_wrap_algorithm,  # 添加这一行以使用配置的算法
                 )
             else:
@@ -288,6 +290,7 @@ def process_text_and_image(text: str, image: Optional[Image.Image]) -> Optional[
                     color=(0, 0, 0),
                     max_font_height=64,
                     font_path=config.font_file,
+                    emoji_font_path=getattr(config, 'emoji_font_file', None),
                     wrap_algorithm=config.text_wrap_algorithm,  # 添加这一行以使用配置的算法
                 )
             

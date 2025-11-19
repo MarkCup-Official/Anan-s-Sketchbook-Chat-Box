@@ -32,6 +32,9 @@ delay: 0.1
 # 使用字体的文件名, 需要自己导入
 font_file: "font.ttf"
 
+# emoji字体文件路径（可选），如果提供则emoji字符将使用此字体，其他字符使用上面的font_file
+emoji_font_file: "seguiemj.ttf"
+
 # 文本换行算法，可选值："original"(原始算法), "knuth_plass"(改进的Knuth-Plass算法)
 text_wrap_algorithm: "original"
 

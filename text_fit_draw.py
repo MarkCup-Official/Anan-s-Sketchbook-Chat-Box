@@ -11,6 +11,60 @@ Align = Literal["left", "center", "right"]
 VAlign = Literal["top", "middle", "bottom"]
 
 
+def _is_emoji(char: str) -> bool:
+    """
+    检测字符是否为emoji
+    只返回True如果字符确实是emoji，其他所有字符（包括中文、英文、标点等）都返回False
+    
+    规则：
+    - emoji字体只负责emoji字符
+    - 无论是英语还是中文，只要不是emoji，都用普通字体
+    """
+    if not char:
+        return False
+    
+    # 获取第一个字符的Unicode码点
+    code_point = ord(char[0])
+    
+    # emoji的Unicode范围（精确范围，不会误判中文和英文）
+    emoji_ranges = [
+        (0x1F600, 0x1F64F),  # 表情符号 (Emoticons) - 😀-🙏
+        (0x1F300, 0x1F5FF),  # 符号和象形文字 (Misc Symbols and Pictographs) - 🌀-🗿
+        (0x1F680, 0x1F6FF),  # 交通和地图符号 (Transport and Map) - 🚀-🛿
+        (0x1F1E0, 0x1F1FF),  # 旗帜 (Regional Indicators) - 🇠-🇿
+        (0x2702, 0x27B0),    # 装饰符号 (Dingbats) - ✂-➰
+        (0x1F900, 0x1F9FF),  # 补充符号和象形文字 (Supplemental Symbols and Pictographs) - 🤀-🧿
+        (0x1FA00, 0x1FA6F),  # 扩展-A (Symbols Extended-A)
+        (0x1FA70, 0x1FAFF),  # 扩展-B (Symbols Extended-B)
+        (0x2600, 0x26FF),    # 杂项符号 (Misc Symbols) - ☀-⛿
+        (0x2700, 0x27BF),    # 装饰符号 (Dingbats) - ✀-➿
+    ]
+    
+    # 检查主字符是否在emoji范围内
+    for start, end in emoji_ranges:
+        if start <= code_point <= end:
+            return True
+    
+    # 检查是否是组合emoji（包含零宽连接符的情况，如 👨‍👩‍👧‍👦）
+    if '\u200D' in char:  # Zero Width Joiner
+        # 检查组合emoji的各个部分是否都是emoji
+        parts = [p for p in char.split('\u200D') if p]
+        if parts:
+            # 检查每个部分是否都是emoji
+            for part in parts:
+                part_code = ord(part[0]) if part else 0
+                is_emoji_part = False
+                for start, end in emoji_ranges:
+                    if start <= part_code <= end:
+                        is_emoji_part = True
+                        break
+                if not is_emoji_part:
+                    return False
+            return True
+    
+    return False
+
+
 def _load_font(font_path: Optional[str], size: int) -> ImageFont.FreeTypeFont:
     """
     加载指定路径的字体文件，如果失败则加载默认字体。
@@ -302,6 +356,46 @@ def parse_color_segments(
     return segs, in_bracket
 
 
+def parse_text_segments_with_font(
+    text: str, 
+    emoji_font: ImageFont.FreeTypeFont,
+    normal_font: ImageFont.FreeTypeFont
+) -> List[Tuple[str, ImageFont.FreeTypeFont]]:
+    """
+    将文本按字符分割，为每个字符分配对应的字体（emoji或普通字体）
+    返回 (文本片段, 字体) 的列表
+    规则：只有emoji字符使用emoji字体，其他所有字符（中文、英文、标点等）都使用普通字体
+    """
+    segments: List[Tuple[str, ImageFont.FreeTypeFont]] = []
+    current_segment = ""
+    current_font = normal_font
+    
+    i = 0
+    while i < len(text):
+        char = text[i]
+        
+        # 检查是否是emoji字符
+        is_emoji_char = _is_emoji(char)
+        target_font = emoji_font if is_emoji_char else normal_font
+        
+        # 如果字体类型改变，保存当前片段并开始新片段
+        if target_font != current_font and current_segment:
+            segments.append((current_segment, current_font))
+            current_segment = char
+            current_font = target_font
+        else:
+            current_segment += char
+            current_font = target_font
+        
+        i += 1
+    
+    # 添加最后一个片段
+    if current_segment:
+        segments.append((current_segment, current_font))
+    
+    return segments
+
+
 def measure_block(
     draw: ImageDraw.ImageDraw,
     lines: List[str],
@@ -330,6 +424,7 @@ def draw_text_auto(
     color: RGBColor = (0, 0, 0),
     max_font_height: Optional[int] = None,
     font_path: Optional[str] = None,
+    emoji_font_path: Optional[str] = None,  # 新增参数：emoji字体路径
     align: Align = "center",
     valign: VAlign = "middle",
     line_spacing: float = 0.15,
@@ -340,6 +435,7 @@ def draw_text_auto(
     """
     在指定矩形内自适应字号绘制文本；
     中括号及括号内文字使用 bracket_color。
+    如果提供了 emoji_font_path，emoji字符将使用emoji字体，其他字符使用普通字体。
     """
 
     # --- 1. 打开图像 ---
@@ -368,6 +464,7 @@ def draw_text_auto(
     region_w, region_h = x2 - x1, y2 - y1
 
     # --- 2. 搜索最大字号 ---
+    # 使用普通字体进行字号计算（因为emoji字体主要用于显示）
     hi = min(region_h, max_font_height) if max_font_height else region_h
     lo, best_size, best_lines, best_line_h, best_block_h = 1, 0, [], 0, 0
 
@@ -398,6 +495,11 @@ def draw_text_auto(
     else:
         font = _load_font(font_path, best_size)
 
+    # 加载emoji字体（如果提供了路径）
+    emoji_font = None
+    if emoji_font_path and os.path.exists(emoji_font_path):
+        emoji_font = _load_font(emoji_font_path, best_size)
+
     # --- 3. 垂直对齐 ---
     if valign == "top":
         y_start = y1
@@ -410,20 +512,55 @@ def draw_text_auto(
     y = y_start
     in_bracket = False
     for ln in best_lines:
-        line_w = int(draw.textlength(ln, font=font))
+        # 计算整行的宽度（用于对齐）
+        if emoji_font:
+            # 如果有emoji字体，需要分别计算每个片段的宽度
+            line_w = 0
+            segments_with_font = parse_text_segments_with_font(ln, emoji_font, font)
+            for seg_text, seg_font in segments_with_font:
+                line_w += int(draw.textlength(seg_text, font=seg_font))
+        else:
+            line_w = int(draw.textlength(ln, font=font))
+        
+        # 水平对齐
         if align == "left":
             x = x1
         elif align == "center":
             x = x1 + (region_w - line_w) // 2
         else:
             x = x2 - line_w
+        
+        # 解析颜色片段
         segments, in_bracket = parse_color_segments(
             ln, in_bracket, bracket_color, color
         )
+        
+        # 绘制每个片段
         for seg_text, seg_color in segments:
             if seg_text:
-                draw.text((x, y), seg_text, font=font, fill=seg_color)
-                x += int(draw.textlength(seg_text, font=font))
+                if emoji_font:
+                    # 如果启用了emoji字体，按字符/片段选择字体
+                    font_segments = parse_text_segments_with_font(seg_text, emoji_font, font)
+                    for font_seg_text, font_seg_font in font_segments:
+                        if font_seg_text:
+                            # 检查是否是emoji字符，如果是则启用彩色渲染
+                            is_emoji_seg = _is_emoji(font_seg_text[0]) if font_seg_text else False
+                            if is_emoji_seg:
+                                # 对于emoji，使用embedded_color=True以支持彩色渲染
+                                try:
+                                    draw.text((x, y), font_seg_text, font=font_seg_font, embedded_color=True)
+                                except TypeError:
+                                    # 如果PIL版本不支持embedded_color，回退到普通方式
+                                    draw.text((x, y), font_seg_text, font=font_seg_font, fill=seg_color)
+                            else:
+                                # 非emoji字符使用指定颜色
+                                draw.text((x, y), font_seg_text, font=font_seg_font, fill=seg_color)
+                            x += int(draw.textlength(font_seg_text, font=font_seg_font))
+                else:
+                    # 没有emoji字体，使用普通字体
+                    draw.text((x, y), seg_text, font=font, fill=seg_color)
+                    x += int(draw.textlength(seg_text, font=font))
+        
         y += best_line_h
         if y - y_start > region_h:
             break
