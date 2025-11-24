@@ -1,0 +1,40 @@
+name: sketchbook_chat_box
+description: Anan's Sketchbook Chat Box for Android
+publish_to: "none"
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.2
+  share_plus: ^10.0.0
+  path_provider: ^2.1.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^2.0.0
+  flutter_launcher_icons: ^0.13.1
+
+flutter:
+  uses-material-design: true
+
+  # 确保你把 BaseImages 文件夹和 font.ttf 复制到了项目根目录下的 assets 文件夹中
+  assets:
+    - assets/BaseImages/
+    # 如果有 overlay 图片
+    # - assets/BaseImages/base_overlay.png
+
+  fonts:
+    - family: AppFont
+      fonts:
+        - asset: assets/fonts/font.ttf
+
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: false
+  image_path: "assets/BaseImages/base.png"
+  min_sdk_android: 21
