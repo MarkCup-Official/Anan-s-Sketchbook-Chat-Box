@@ -1,0 +1,27 @@
+# Mark platform specific boilerplate as generated
+android/** linguist-generated=true
+ios/** linguist-generated=true
+web/** linguist-generated=true
+macos/** linguist-generated=true
+windows/** linguist-generated=true
+linux/** linguist-generated=true
+
+# Mark lock files as generated
+*.lock linguist-generated=true
+*.metadata linguist-generated=true
+
+# 强制把 assets 下的所有文件视为不可比对，并且视为二进制
+assets/** -diff
+assets/** binary
+
+*.png binary -diff
+*.jpg binary -diff
+*.jpeg binary -diff
+*.gif binary -diff
+*.webp binary -diff
+
+# 3. 针对 Flutter 常见的字体文件
+*.ttf linguist-generated=true
+
+.gitattributes linguist-generated=true
+.gitignore linguist-generated=true
