@@ -3,6 +3,7 @@ import io
 import logging
 import time
 from typing import Optional, Tuple
+import re
 
 import keyboard
 import psutil
@@ -344,12 +345,32 @@ def generate_image():
         logging.error("生成图片失败！未生成 PNG 字节。")
         return
 
+    # 解析字符串中的url
+    pattern = r'https?://(?:[-\w.]|(?:%[\da-fA-F]{2}))+'
+    urls = re.findall(pattern, user_input)
+    url_to_add = ""
+    if urls:
+        logging.info(f"识别到链接{urls}")
+        # 将urls从list转换为str并分行、格式化
+        for urlId in range(len(urls)):
+            url = urls[urlId]
+            url_to_add += f"[{urlId}] {url} \n"
+
     copy_png_bytes_to_clipboard(png_bytes)
 
     if config.auto_paste_image:
         keyboard.send(config.paste_hotkey)
 
         time.sleep(config.delay)
+
+        # 将链接补充到图片后面
+        if urls:
+            win32clipboard.OpenClipboard()
+            win32clipboard.EmptyClipboard()
+            win32clipboard.SetClipboardData(win32clipboard.CF_UNICODETEXT, "\n" + url_to_add)
+            win32clipboard.CloseClipboard()
+            keyboard.send(config.paste_hotkey)
+            time.sleep(config.delay)
 
         if config.auto_send_image:
             keyboard.send(config.send_hotkey)
