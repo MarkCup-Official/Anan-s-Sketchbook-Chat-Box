@@ -3,6 +3,7 @@ import io
 import logging
 import time
 from typing import Optional, Tuple
+import re
 
 import keyboard
 import psutil
