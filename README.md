@@ -1,4 +1,4 @@
-#PR description
+# PR description
 ## Summary
 使用 Flutter 实现了该项目的 Android 版本，用于更方便地在手机上发送夏目安安的图片
 ## how to test/use(Release)
