@@ -1,5 +1,7 @@
 # filename: text_fit_draw.py
+import logging
 import os
+from functools import lru_cache
 from io import BytesIO
 from typing import List, Literal, Optional, Tuple, Union
 
@@ -10,17 +12,27 @@ RGBColor = Tuple[int, int, int]
 Align = Literal["left", "center", "right"]
 VAlign = Literal["top", "middle", "bottom"]
 
+logger = logging.getLogger(__name__)
 
+
+@lru_cache(maxsize=32)
+def _load_image_cached(image_path: str) -> Image.Image:
+    """缓存加载图像文件，避免重复读取磁盘。"""
+    return Image.open(image_path).convert("RGBA")
+
+
+@lru_cache(maxsize=64)
 def _load_font(font_path: Optional[str], size: int) -> ImageFont.FreeTypeFont:
     """
     加载指定路径的字体文件，如果失败则加载默认字体。
+    使用 LRU 缓存避免重复加载相同字体。
     """
     if font_path and os.path.exists(font_path):
         return ImageFont.truetype(font_path, size=size)
     try:
         return ImageFont.truetype("DejaVuSans.ttf", size=size)
     except Exception:
-        return ImageFont.load_default()  # type: ignore # 如果没有可用的 TTF 字体，则加载默认位图字体
+        return ImageFont.load_default()  # type: ignore
 
 
 def wrap_lines(
@@ -84,7 +96,9 @@ def _is_bracket_token(tok: str) -> bool:
     return tok.startswith("【") and tok.endswith("】")
 
 
-def _split_long_token(draw: ImageDraw.ImageDraw, token: str, font: ImageFont.FreeTypeFont, max_w: int) -> List[str]:
+def _split_long_token(
+    draw: ImageDraw.ImageDraw, token: str, font: ImageFont.FreeTypeFont, max_w: int
+) -> List[str]:
     """
     将过长的 token 切成多个子 token，每个子 token 宽度 <= max_w（尽量）。
     对于成对括号 token，会尝试在不拆开括号两端的情况下拆内部；当确实无法放下时，
@@ -157,7 +171,7 @@ def _split_long_token(draw: ImageDraw.ImageDraw, token: str, font: ImageFont.Fre
 
 
 def tokenize(
-        draw: ImageDraw.ImageDraw, text: str, font: ImageFont.FreeTypeFont, max_w: int
+    draw: ImageDraw.ImageDraw, text: str, font: ImageFont.FreeTypeFont, max_w: int
 ) -> List[str]:
     """
     先按逻辑切分为 tokens（保括号），
@@ -212,7 +226,7 @@ def tokenize(
 
 
 def wrap_lines_knuth_plass(
-        draw: ImageDraw.ImageDraw, txt: str, font: ImageFont.FreeTypeFont, max_w: int
+    draw: ImageDraw.ImageDraw, txt: str, font: ImageFont.FreeTypeFont, max_w: int
 ) -> List[str]:
     """
     将文本按指定宽度拆分为多行。
@@ -237,7 +251,7 @@ def wrap_lines_knuth_plass(
             if line_width > max_w:
                 break
             remaining = max_w - line_width
-            badness = remaining ** 2
+            badness = remaining**2
             if i == n:  # 最后一行不计惩罚
                 badness = 0.0
             cost = dp[j] + badness
@@ -335,31 +349,29 @@ def draw_text_auto(
     line_spacing: float = 0.15,
     bracket_color: RGBColor = (128, 0, 128),  # 中括号及内部内容颜色
     image_overlay: Union[str, Image.Image, None] = None,
-    wrap_algorithm: str = "original"  # 新增参数，用于选择换行算法
+    wrap_algorithm: str = "original",  # 新增参数，用于选择换行算法
 ) -> bytes:
     """
     在指定矩形内自适应字号绘制文本；
     中括号及括号内文字使用 bracket_color。
     """
 
-    # --- 1. 打开图像 ---
+    # --- 1. 打开图像（使用缓存）---
     if isinstance(image_source, Image.Image):
         img = image_source.copy()
-    else:
+    elif isinstance(image_source, BytesIO):
         img = Image.open(image_source).convert("RGBA")
+    else:
+        img = _load_image_cached(image_source).copy()
     draw = ImageDraw.Draw(img)
 
+    # 加载覆盖图（使用缓存）
+    img_overlay = None
     if image_overlay is not None:
         if isinstance(image_overlay, Image.Image):
             img_overlay = image_overlay.copy()
-        else:
-            img_overlay = (
-                Image.open(image_overlay).convert("RGBA")
-                if os.path.isfile(image_overlay)
-                else None
-            )
-    else:
-        img_overlay = None
+        elif os.path.isfile(image_overlay):
+            img_overlay = _load_image_cached(image_overlay).copy()
 
     x1, y1 = top_left
     x2, y2 = bottom_right
@@ -432,7 +444,7 @@ def draw_text_auto(
     if image_overlay is not None and img_overlay is not None:
         img.paste(img_overlay, (0, 0), img_overlay)
     elif image_overlay is not None and img_overlay is None:
-        print("Warning: overlay image is not exist.")
+        logger.warning("Overlay image does not exist: %s", image_overlay)
 
     # --- 5. 输出 PNG ---
     buf = BytesIO()

@@ -1,8 +1,4 @@
-# 安安的素描本聊天框
-
-[![Python Version](https://img.shields.io/badge/python-3.8%2B-blue)](https://www.python.org/downloads/)
-[![Platform](https://img.shields.io/badge/platform-windows-lightgrey)](https://en.wikipedia.org/wiki/Microsoft_Windows)
-[![License](https://img.shields.io/github/license/Sheyiyuan/Anan-s-Sketchbook-Chat-Box)](LICENSE)
+# 安安的素描本聊天框 - CLI 修复版
 
 这是一个将你在文本输入框中输入的文字和图片绘制到夏目安安的素描本上的工具。它能够创建出与游戏内容类似的效果，适用于微信，QQ等聊天软件。
 
@@ -17,72 +13,46 @@
 - 🔧 高度可配置：几乎所有参数都可以通过配置文件自定义
 - 🔄 自动发送：生成图像后可自动粘贴并发送消息
 
+## Fix 分支修复说明
+
+- **仅修复和保留了 CLI (终端) 部分内容，不包含 GUI 内容，不承诺对 GUI 的修复和适配**
+- 修复了使用 `Enter` 快捷键成功发送一次内容后，`alt` 表情切换快捷键不生效的问题
+- 修复了上述问题引发的，可能性的，退出后键盘输入死锁的问题
+- 添加了缓存机制，减少性能开销
+- 添加了更安全的退出和进程清理机制
+
 ## 系统要求
 
 - Windows 7 或更高版本（暂不支持 macOS/Linux）
-- Python 3.8 或更高版本
-- 依赖库详见 [requirements.txt](requirements.txt)
 
-## 安装部署
+## 安装和使用
+
+可参考的原项目教程：
 教程视频 https://www.bilibili.com/video/BV16G1mBUECy  
 文本教程 https://www.bilibili.com/opus/1131995010930049048
-### 安装python以部署
-1. 安装Python：下载并安装Python 3.8 或更高版本。已安装可跳过该步骤  
-python官方下载地址：https://www.python.org/downloads/  
-国内镜像：https://mirrors.tuna.tsinghua.edu.cn/python/  
-直链下载链接：https://www.python.org/ftp/python/3.8.10/python-3.8.10-amd64.exe  
-镜像下载链接：https://mirrors.tuna.tsinghua.edu.cn/python/3.8.2/python-3.8.2-amd64.exe  
-安装时勾选“添加 Python 到 PATH”  
 
-2. 下载代码
-点击绿色 Code 按钮，选择 Download Zip，等待下载完成
-若下载速度过慢，可以使用 https://github.akams.cn/ 加速下载  
-
-3. 安装依赖库  
-按下 Win + R → 输入 cmd → 回车 打开cmd终端  
-使用 cd 命令进入项目所在目录，例如：cd "D:\anan"  
-确保此时cmd显示的路径是你之前解压的路径, 输入 ```pip install -r requirements.txt```  
-此操作会自动安装所有依赖库
-
-### 直接下载exe文件
-1. 点击下载 [main.exe](https://github.com/MarkCup-Official/Anan-s-Sketchbook-Chat-Box/releases/tag/ui-v2.0.0)  
-可使用 https://github.akams.cn/ 加速下载  
-此版本为ui测试版，使用方法略有差异  
-  
-### 使用git进行部署的方法此处不再赘述
-
-
-
-## 使用方法
-
-### 基本使用
-
-1. 使用文本编辑器打开 [config.yaml](config.yaml) 配置相关参数
-2. 运行主程序：
-   ```bash
-   python main.py
-   ```
-   若先前已经添加至PATH，双击 main.py 即可启动程序
-3. 在聊天应用中输入文字或粘贴图片
-4. 按下回车键（默认热键），程序将自动生成素描本图像并发送
+安装和使用方法：
+1. 在 Release 下载 `Anan-s-Sketchbook-Chat-Box.zip`
+2. 解压到合适的路径
+3. 双击 `Anan-s-Sketchbook-Chat-Box.exe` 文件运行
+4. 在聊天应用中输入文字或粘贴图片
+5. 按下回车键（默认热键），程序将自动生成素描本图像并发送
 
 ### 表情差分切换
 
-支持以下表情标签切换，一次切换持续有效：
-- `#普通#`
-- `#开心#`
-- `#生气#`
-- `#无语#`
-- `#脸红#`
-- `#病娇#`
-
-也可通过 Alt+数字键快速切换：
-- Alt+1: #普通#
-- Alt+2: #开心#
-- Alt+3: #生气#
-- Alt+4: #无语#
-- Alt+5: #脸红#
-- Alt+6: #病娇#
+通过 Alt+数字键快速切换：
+- "alt+1": "#普通#"
+- "alt+2": "#开心#"
+- "alt+3": "#生气#"
+- "alt+4": "#无语#"
+- "alt+5": "#脸红#"
+- "alt+6": "#病娇#"
+- "alt+7": "#闭眼#"
+- "alt+8": "#难受#"
+- "alt+9": "#害怕#"
+- "alt+0": "#激动#"
+- "alt+q": "#惊讶#"
+- "alt+w": "#哭泣#"
 
 ### 特殊文本效果
 
@@ -99,7 +69,7 @@ python官方下载地址：https://www.python.org/downloads/
 - 字体文件路径
 - 底图和遮罩图路径
 
-详细配置说明请参见 [config.py](config.py) 文件。
+详细配置说明请参见 [config.yaml](config.yaml) 文件。
 
 ## 故障排除
 
@@ -111,12 +81,6 @@ python官方下载地址：https://www.python.org/downloads/
 
 ## 许可证
 
-本项目基于MIT协议传播，仅供个人学习交流使用，不拥有相关素材的版权。进行分发时应注意不违反素材版权与官方二次创造协定。
+原项目基于 MIT 协议传播，仅供个人学习交流使用，不拥有相关素材的版权。进行分发时应注意不违反素材版权与官方二次创造协定。
 
-## 另附
-
-如需在 macOS 或 Linux 上使用，请参考 [跨平台分支](https://github.com/Sheyiyuan/Anan-s-Sketchbook-Chat-Box)。
-
-如需在自动化脚本中使用，请参考 [None bot分支](https://github.com/ZiAzusa/nonebot_plugin_anans_sketchbook)。
-
-API版本请参考 [API](https://github.com/SheyiyuanTan90/Anan-s-Sketchbook-API) 分支。
+该 fork 仓库的 fix 分支的修改和新增内容基于 0BSD 协议开源，本人不对项目负任何责任。
