@@ -216,7 +216,7 @@ def wrap_lines_knuth_plass(
 ) -> List[str]:
     """
     将文本按指定宽度拆分为多行。
-    简化的 Knuth–Plass 算法
+    改进的 Knuth–Plass 算法，使用惩罚机制避免标点出现在行首
     """
     tokens = tokenize(draw, txt, font, max_w)
     n = len(tokens)
@@ -224,6 +224,10 @@ def wrap_lines_knuth_plass(
     cum = [0.0] * (n + 1)
     for i in range(n):
         cum[i + 1] = cum[i] + widths[i]
+
+    # 定义标点符号集合和惩罚值
+    punctuation = "。，：；？！.,?!"
+    punctuation_penalty = 1000.0  # 标点在行首的高惩罚值
 
     INF = float("inf")
     dp = [INF] * (n + 1)
@@ -236,14 +240,27 @@ def wrap_lines_knuth_plass(
             line_width = cum[i] - cum[j]
             if line_width > max_w:
                 break
+            
+            # 计算不良度
             remaining = max_w - line_width
             badness = remaining ** 2
-            if i == n:  # 最后一行不计惩罚
+            
+            # 如果是最后一行，不计惩罚
+            if i == n:
                 badness = 0.0
-            cost = dp[j] + badness
+                penalty = 0.0
+            else:
+                # 计算惩罚：如果行以标点开头，给予高惩罚
+                penalty = 0.0
+                if j < i and tokens[j] in punctuation:
+                    penalty = punctuation_penalty
+            
+            # 不满值 = 不良度 + 惩罚
+            demerits = badness + penalty
+            cost = dp[j] + demerits
+
             if cost < dp[i]:
-                dp[i] = cost
-                prev[i] = j
+                dp[i], prev[i] = cost, j
 
     # if prev[n] == -1 then even after splitting there's no feasible layout (理论上不应发生)
     if prev[n] == -1:
@@ -251,13 +268,20 @@ def wrap_lines_knuth_plass(
         lines = []
         cur = ""
         for tok in tokens:
+            # 避免以标点开头
+            if not cur and tok in punctuation:
+                continue
             trial = cur + tok
             if draw.textlength(trial, font=font) <= max_w:
                 cur = trial
             else:
                 if cur:
                     lines.append(cur)
-                cur = tok
+                # 再次检查，确保新行不以标点开头
+                if tok not in punctuation:
+                    cur = tok
+                else:
+                    cur = ""
         if cur:
             lines.append(cur)
         return lines
@@ -267,10 +291,32 @@ def wrap_lines_knuth_plass(
     idx = n
     while idx > 0:
         j = prev[idx]
-        lines.append("".join(tokens[j:idx]))
+        line = "".join(tokens[j:idx])
         idx = j
+        if line:
+            lines.append(line) 
     lines.reverse()
-    return lines
+    
+    # 处理行开头的标点，将它们移动到上一行
+    processed_lines = []
+    for i, line in enumerate(lines):
+        # 提取所有开头的标点
+        leading_punctuation = ""
+        if i == 0:
+            # 第一行，如果有开头标点，不处理
+            if line:
+                processed_lines.append(line)
+        else:
+
+            while line and line[0] in punctuation:
+                leading_punctuation += line[0]
+                line = line[1:]
+            # 将标点添加到上一行末尾
+            if leading_punctuation and processed_lines:
+                processed_lines[-1] += leading_punctuation
+            if line:
+                processed_lines.append(line)
+    return processed_lines
 
 
 def parse_color_segments(
